@@ -118,35 +118,37 @@ public class test3 {
         //通过连接工厂创建连接对象
         org.apache.hadoop.hbase.client.Connection conn = ConnectionFactory.createConnection(conf);
         //通过连接查询tableName对象    表名
-        TableName tname = TableName.valueOf("22data");
+        TableName tname = TableName.valueOf("data22");
         //获得table
         Table table = conn.getTable(tname);
-//        HTable table=new HTable(conf,tname);
         //通过bytes工具类创建字节数组(将字符串)
         byte[] rowid = Bytes.toBytes(data[1]);  //rowkey名
         //创建put对象
         Put put = new Put(rowid);
 
-        byte[] time = Bytes.toBytes("time");  //列簇名
-        byte[] id = Bytes.toBytes("test1"); //列名
+        byte[] time = Bytes.toBytes("infor");  //列簇名
+        byte[] id = Bytes.toBytes("time"); //列名
         byte[] value = Bytes.toBytes(data[1]); //设置值
         put.addColumn(time, id, value);
         table.put(put);//执行插入
 
-        put.addColumn(Bytes.toBytes("longitude"), Bytes.toBytes("test1"), Bytes.toBytes(data[2]));
+        put.addColumn(Bytes.toBytes("infor"), Bytes.toBytes("longitude"), Bytes.toBytes(data[2]));
         table.put(put);//执行插入
-        put.addColumn(Bytes.toBytes("flag"), Bytes.toBytes("test1"), Bytes.toBytes(data[4]));
+        put.addColumn(Bytes.toBytes("infor"), Bytes.toBytes("latitude"), Bytes.toBytes(data[3]));
         table.put(put);//执行插入
-        put.addColumn(Bytes.toBytes("serialNum"), Bytes.toBytes("test1"), Bytes.toBytes(data[5]));
-        table.put(put);//执行插入
-        put.addColumn(Bytes.toBytes("startingFrequency"), Bytes.toBytes("test1"), Bytes.toBytes(data[6]));
-        table.put(put);//执行插入
-        put.addColumn(Bytes.toBytes("terminationFrequency"), Bytes.toBytes("test1"), Bytes.toBytes(data[7]));
-        table.put(put);//执行插入
-        put.addColumn(Bytes.toBytes("interval"), Bytes.toBytes("test1"), Bytes.toBytes(data[8]));
-        table.put(put);//执行插入
-        put.addColumn(Bytes.toBytes("nums"), Bytes.toBytes("test1"), Bytes.toBytes(data[9]));
-        table.put(put);//执行插入
+
+//        put.addColumn(Bytes.toBytes("flag"), Bytes.toBytes("test1"), Bytes.toBytes(data[4]));
+//        table.put(put);//执行插入
+//        put.addColumn(Bytes.toBytes("serialNum"), Bytes.toBytes("test1"), Bytes.toBytes(data[5]));
+//        table.put(put);//执行插入
+//        put.addColumn(Bytes.toBytes("startingFrequency"), Bytes.toBytes("test1"), Bytes.toBytes(data[6]));
+//        table.put(put);//执行插入
+//        put.addColumn(Bytes.toBytes("terminationFrequency"), Bytes.toBytes("test1"), Bytes.toBytes(data[7]));
+//        table.put(put);//执行插入
+//        put.addColumn(Bytes.toBytes("interval"), Bytes.toBytes("test1"), Bytes.toBytes(data[8]));
+//        table.put(put);//执行插入
+//        put.addColumn(Bytes.toBytes("nums"), Bytes.toBytes("test1"), Bytes.toBytes(data[9]));
+//        table.put(put);//执行插入
 
         //速度慢，但是正确
 //        for (int i = 10; i < data.length; i++) {
@@ -163,16 +165,38 @@ public class test3 {
 //        configuration.set("hbase.zookeeper.property.clientPort", "2181");
         configuration.set("hbase.zookeeper.quorum", "10.109.29.21");
         BufferedMutator table2 = null;
-        BufferedMutatorParams htConfig = new BufferedMutatorParams(TableName.valueOf("22data")).writeBufferSize(10 * 1024 * 1024);
+        BufferedMutatorParams htConfig = new BufferedMutatorParams(TableName.valueOf("data22")).writeBufferSize(10 * 1024 * 1024);
         org.apache.hadoop.hbase.client.Connection connection = ConnectionFactory.createConnection(configuration);
         table2 = connection.getBufferedMutator(htConfig);
         int count = 0;
-        List<Put> puts=new ArrayList<Put>(2048);
-        //模拟插入数据
-        for (int i = 10; i < data.length; i++) {
+        List<Put> puts = new ArrayList<Put>(2048);
+
+        int n = 0;
+        String band = "";
+        for (int i = 4; i < data.length; i++) {
+            if (data[i].equals("1111.0")) {
+                n = 0;
+                if ("1.0".equals(data[i + 1])) {
+                    band = "bandOne";
+                } else if ("2.0".equals(data[i + 1])) {
+                    band = "bandTwo";
+                } else if ("3.0".equals(data[i + 1])) {
+                    band = "bandThree";
+                } else {
+                    band = "bandFour";
+                }
+                put.addColumn(Bytes.toBytes(band), Bytes.toBytes("serialNum"), Bytes.toBytes(data[++i]));
+                put.addColumn(Bytes.toBytes(band), Bytes.toBytes("startingFrequency"), Bytes.toBytes(data[++i]));
+                put.addColumn(Bytes.toBytes(band), Bytes.toBytes("terminationFrequency"), Bytes.toBytes(data[++i]));
+                put.addColumn(Bytes.toBytes(band), Bytes.toBytes("interval"), Bytes.toBytes(data[++i]));
+                put.addColumn(Bytes.toBytes(band), Bytes.toBytes("nums"), Bytes.toBytes(data[++i]));
+                i++;
+            }
+            String field = "fieldStrength" + n;
             Put p = new Put(Bytes.toBytes(data[1]));
-            p.addColumn(Bytes.toBytes("fieldStrength"), Bytes.toBytes(String.valueOf(i)), Bytes.toBytes(data[i]));
+            p.addColumn(Bytes.toBytes(band), Bytes.toBytes(field), Bytes.toBytes(data[i]));
             puts.add(p);
+            n++;
             count++;
             if (count % 3000 == 0) {
                 System.out.println("count:" + count);
